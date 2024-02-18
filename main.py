@@ -17,6 +17,7 @@ mask = np.zeros_like(first_frame)
 # Set image saturate to maximum
 mask[..., 1] = 255
 
+timestamps = []
 avg_motion_array = []
 avg_angle_array = []
 
@@ -40,7 +41,7 @@ while video_capture.isOpened():
                                        0.5, 3, 15, 3, 15, 1.2, 0)
     
     # Compute the magnitude and angle (direction)
-    magnitude, angle = cv.cartToPolar(flow[..., 0], flow[..., 1])
+    magnitude, angle = cv.cartToPolar(flow[..., 0], flow[..., 1], angleInDegrees=True)
 
     # Get the average motion between the previous and current frame
     avg_motion_vector = np.mean(magnitude)
@@ -51,6 +52,7 @@ while video_capture.isOpened():
 
     avg_motion_array.append(avg_motion_vector)
     avg_angle_array.append(avg_angle_vector)
+    timestamps.append(video_capture.get(cv.CAP_PROP_POS_MSEC))
 
     print("Magnitude Array:", avg_motion_array)
     print("Angle Array:", avg_angle_array)
@@ -73,8 +75,24 @@ while video_capture.isOpened():
     if cv.waitKey(1) & 0xFF == ord('q'): 
         break
 
-plt.plot(avg_motion_array, avg_angle_array)
-plt.show()
-
 video_capture.release() 
 cv.destroyAllWindows() 
+
+avg_angle_array = np.array(avg_angle_array) - 180 # Get in negative directions
+timestamps = np.array(timestamps) / 1000.0
+plt.plot(timestamps, avg_motion_array)
+plt.xlabel('Time (s)')
+plt.ylabel('Velocity Magnitude')
+plt.title('Change in Velocity over Time')
+plt.grid(True)
+plt.show()
+
+plt.plot(timestamps, avg_angle_array)
+plt.xlabel('Time (s)')
+plt.ylabel('Velocity Angle')
+plt.title('Change in Angle (Direction) over Time')
+plt.grid(True)
+plt.show()
+
+
+
