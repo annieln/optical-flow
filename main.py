@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Read video feed
 video_capture = cv.VideoCapture("assets/inputvideo.mp4")
@@ -16,10 +17,16 @@ mask = np.zeros_like(first_frame)
 # Set image saturate to maximum
 mask[..., 1] = 255
 
+avg_motion_array = []
+avg_angle_array = []
+
 while video_capture.isOpened():
 
     # Get the current frame being projected in the video
     ret, frame = video_capture.read()
+
+    if ret == 0:
+        break
 
     # Open new window and display input frame
     cv.imshow("input", frame)
@@ -42,6 +49,12 @@ while video_capture.isOpened():
     print("Magnitude:", avg_motion_vector)
     print("Angle:", avg_angle_vector)
 
+    avg_motion_array.append(avg_motion_vector)
+    avg_angle_array.append(avg_angle_vector)
+
+    print("Magnitude Array:", avg_motion_array)
+    print("Angle Array:", avg_angle_array)
+
     # Set image hue to optical flow direction
     mask[..., 0] = angle * 180 / np.pi / 2
 
@@ -59,6 +72,9 @@ while video_capture.isOpened():
 
     if cv.waitKey(1) & 0xFF == ord('q'): 
         break
+
+plt.plot(avg_motion_array, avg_angle_array)
+plt.show()
 
 video_capture.release() 
 cv.destroyAllWindows() 
